@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     ViewPager2 viewPager2;
     TabLayout tabLayout;
     View bottomSheet;
+    View trackLayoutSheet;
 
     ViewPagerFragmentAdapter adapter;
     MediaPlayerService mediaPlayerService;
@@ -56,9 +58,19 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initViewPagerAndTabLayout();
 
+        trackLayoutSheet = findViewById(R.id.track_layout_sheet);
         bottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {}
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                trackLayoutSheet.setAlpha((1-slideOffset));
+            }
+        });
     }
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
