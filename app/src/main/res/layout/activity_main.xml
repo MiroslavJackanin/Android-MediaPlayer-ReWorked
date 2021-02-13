@@ -16,13 +16,14 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#171717"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar"
-            app:tabGravity="start" />
+            app:tabMode="scrollable" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/view_pager"
