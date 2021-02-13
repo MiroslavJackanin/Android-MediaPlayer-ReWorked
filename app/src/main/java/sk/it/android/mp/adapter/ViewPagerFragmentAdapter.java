@@ -10,16 +10,17 @@ import java.util.ArrayList;
 
 import sk.it.android.mp.fragment.AlbumsFragment;
 import sk.it.android.mp.fragment.TracksFragment;
+import sk.it.android.mp.listener.OnTrackClickListener;
 import sk.it.android.mp.util.Track;
 
 public class ViewPagerFragmentAdapter extends FragmentStateAdapter {
 
     private final ArrayList<Fragment> fragments;
 
-    public ViewPagerFragmentAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
+    public ViewPagerFragmentAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle, OnTrackClickListener onTrackClickListener) {
         super(fragmentManager, lifecycle);
         fragments = new ArrayList<>();
-        fragments.add(new TracksFragment());
+        fragments.add(new TracksFragment(onTrackClickListener));
         fragments.add(new AlbumsFragment());
     }
 

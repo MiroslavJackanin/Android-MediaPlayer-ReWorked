@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import sk.it.android.mp.listener.OnTracksLoadListener;
+
 public class DataViewModelFactory implements ViewModelProvider.Factory {
     private final Application application;
     private final OnTracksLoadListener onTracksLoadListener;

@@ -6,14 +6,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 
 import java.util.ArrayList;
 
-import sk.it.android.mp.adapter.TracksRecyclerViewAdapter;
+import sk.it.android.mp.listener.OnTracksLoadListener;
 import sk.it.android.mp.util.Track;
 
 public class DataViewModel extends AndroidViewModel implements OnTracksLoadListener {
@@ -34,7 +33,6 @@ public class DataViewModel extends AndroidViewModel implements OnTracksLoadListe
 
     @Override
     public void OnTracksLoaded(ArrayList<Track> tracks) {
-        Log.i("DEUBG", "DataViewModel: OnTracksLoaded");
         this.tracks = tracks;
         onTracksLoadParentListener.OnTracksLoaded(tracks);
     }

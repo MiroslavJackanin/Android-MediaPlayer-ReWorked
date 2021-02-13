@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import sk.it.android.mp.R;
+import sk.it.android.mp.listener.OnTrackClickListener;
 import sk.it.android.mp.util.Track;
 
 public class TracksRecyclerViewAdapter extends RecyclerView.Adapter<TracksRecyclerViewAdapter.ViewHolder> {

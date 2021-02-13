@@ -31,10 +31,12 @@ import java.util.Objects;
 
 import sk.it.android.mp.adapter.ViewPagerFragmentAdapter;
 import sk.it.android.mp.data.DataViewModel;
+import sk.it.android.mp.listener.MainActivityOnTrackClickListener;
+import sk.it.android.mp.listener.OnTrackClickListener;
 import sk.it.android.mp.service.MediaPlayerService;
 import sk.it.android.mp.util.Track;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnTrackClickListener {
 
     ViewPager2 viewPager2;
     TabLayout tabLayout;
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initViewPagerAndTabLayout() {
         viewPager2 = findViewById(R.id.view_pager);
-        adapter = new ViewPagerFragmentAdapter(getSupportFragmentManager(), getLifecycle());
+        adapter = new ViewPagerFragmentAdapter(getSupportFragmentManager(), getLifecycle(), this);
         viewPager2.setAdapter(adapter);
 
         tabLayout = findViewById(R.id.tab_layout);
@@ -125,5 +127,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             finish();
         }
+    }
+
+    @Override
+    public void onTrackClick(int position) {
+        Log.i("DEBUG", "click" + position);
     }
 }
