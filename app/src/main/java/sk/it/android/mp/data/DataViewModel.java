@@ -1,84 +1,26 @@
 package sk.it.android.mp.data;
 
 import android.app.Application;
-import android.content.ContentResolver;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 
 import java.util.ArrayList;
 
-import sk.it.android.mp.listener.OnTracksLoadListener;
 import sk.it.android.mp.util.Track;
 
-public class DataViewModel extends AndroidViewModel implements OnTracksLoadListener {
+public class DataViewModel extends AndroidViewModel {
 
-    OnTracksLoadListener onTracksLoadParentListener;
-    ArrayList<Track> tracks;
+    private final LiveData<ArrayList<Track>> tracks;
 
-    public DataViewModel(@NonNull Application application, OnTracksLoadListener onTracksLoadParentListener) {
+    public DataViewModel(@NonNull Application application) {
         super(application);
-        this.onTracksLoadParentListener = onTracksLoadParentListener;
-        tracks = new ArrayList<>();
-        new LoadTracksTask(this).execute(application);
+        DataRepository dataRepository = new DataRepository(application);
+        tracks = dataRepository.getLiveData();
     }
 
-    public ArrayList<Track> getTracks() {
+    public LiveData<ArrayList<Track>> getTracks() {
         return tracks;
-    }
-
-    @Override
-    public void OnTracksLoaded(ArrayList<Track> tracks) {
-        this.tracks = tracks;
-        onTracksLoadParentListener.OnTracksLoaded(tracks);
-    }
-
-    public static class LoadTracksTask extends AsyncTask<Application, Void, ArrayList<Track>> {
-
-        private final OnTracksLoadListener listener;
-
-        public LoadTracksTask(OnTracksLoadListener listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        protected ArrayList<Track> doInBackground(Application... applications) {
-
-            Application application = applications[0];
-            ArrayList<Track> tracks = new ArrayList<>();
-
-            ContentResolver contentResolver = application.getApplicationContext().getContentResolver();
-            Uri trackUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-            Cursor trackCursor = contentResolver.query(trackUri, null, null, null, null);
-
-            long id;
-            String title, album, artist, duration;
-            Track track;
-
-            if (trackCursor != null && trackCursor.moveToFirst()) {
-                do {
-                    id = trackCursor.getLong(trackCursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    title = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                    album = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    artist = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    duration = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-
-                    track = new Track(id, title, album, artist, duration);
-                    tracks.add(track);
-                } while (trackCursor.moveToNext());
-                trackCursor.close();
-            }
-            return tracks;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Track> tracks) {
-            super.onPostExecute(tracks);
-            listener.OnTracksLoaded(tracks);
-        }
     }
 }

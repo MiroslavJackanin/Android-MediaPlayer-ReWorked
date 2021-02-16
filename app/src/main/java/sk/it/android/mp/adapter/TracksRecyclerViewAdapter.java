@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import sk.it.android.mp.R;
 import sk.it.android.mp.listener.OnTrackClickListener;
@@ -18,11 +17,16 @@ import sk.it.android.mp.util.Track;
 public class TracksRecyclerViewAdapter extends RecyclerView.Adapter<TracksRecyclerViewAdapter.ViewHolder> {
 
     private final OnTrackClickListener onTrackClickListener;
-    private final List<Track> tracks;
+    private ArrayList<Track> tracks;
 
-    public TracksRecyclerViewAdapter(ArrayList<Track> tracks, OnTrackClickListener onTrackClickListener) {
+    public TracksRecyclerViewAdapter(OnTrackClickListener onTrackClickListener) {
         this.onTrackClickListener = onTrackClickListener;
+        this.tracks = new ArrayList<>();
+    }
+
+    public void setTracks(ArrayList<Track> tracks) {
         this.tracks = tracks;
+        notifyDataSetChanged();
     }
 
     @NonNull

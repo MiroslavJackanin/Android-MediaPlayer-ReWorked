@@ -19,6 +19,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
     MediaPlayerService mediaPlayerService;
     BottomSheetBehavior<View> bottomSheetBehavior;
 
+    ArrayList<Track> tracks = new ArrayList<>();
     boolean isMediaPlayerServiceBound = false;
 
     @Override
@@ -71,6 +73,16 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
                 trackLayoutSheet.setAlpha((1-slideOffset));
+            }
+        });
+
+        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
+        DataViewModel dataViewModel = viewModelProvider.get(DataViewModel.class);
+
+        LiveData<ArrayList<Track>> tracksLiveData = dataViewModel.getTracks();
+        tracksLiveData.observe(this, tracks -> {
+            if (tracks != null) {
+                this.tracks = tracks;
             }
         });
     }
@@ -131,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
 
     @Override
     public void onTrackClick(int position) {
-        Log.i("DEBUG", "click" + position);
+        Log.i("DEBUG", String.valueOf(tracks.get(position).getTitle()));
+
     }
 }

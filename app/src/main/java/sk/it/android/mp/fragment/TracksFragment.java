@@ -1,7 +1,6 @@
 package sk.it.android.mp.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,27 +8,26 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import sk.it.android.mp.R;
-import sk.it.android.mp.listener.OnTrackClickListener;
 import sk.it.android.mp.adapter.TracksRecyclerViewAdapter;
 import sk.it.android.mp.data.DataViewModel;
-import sk.it.android.mp.data.DataViewModelFactory;
-import sk.it.android.mp.listener.OnTracksLoadListener;
+import sk.it.android.mp.listener.OnTrackClickListener;
 import sk.it.android.mp.util.Track;
 
-public class TracksFragment extends Fragment implements OnTracksLoadListener {
+public class TracksFragment extends Fragment {
 
     RecyclerView tracksRecyclerView;
+    ViewModelProvider viewModelProvider;
     DataViewModel dataViewModel;
 
-    ArrayList<Track> tracks;
+    LiveData<ArrayList<Track>> tracksLiveData;
     TracksRecyclerViewAdapter adapter;
 
     OnTrackClickListener onTrackClickListener;
@@ -46,20 +44,20 @@ public class TracksFragment extends Fragment implements OnTracksLoadListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         tracksRecyclerView = view.findViewById(R.id.tracksRecyclerView);
+        adapter = new TracksRecyclerViewAdapter(onTrackClickListener);
+        tracksRecyclerView.setAdapter(adapter);
         tracksRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
 
-        dataViewModel = new ViewModelProvider(this, new DataViewModelFactory(Objects.requireNonNull(getActivity()).getApplication(), this)).get(DataViewModel.class);
-        tracks = dataViewModel.getTracks();
+        viewModelProvider = new ViewModelProvider(this);
+        dataViewModel = viewModelProvider.get(DataViewModel.class);
 
-        adapter = new TracksRecyclerViewAdapter(tracks, onTrackClickListener);
-        tracksRecyclerView.setAdapter(adapter);
-    }
-
-    @Override
-    public void OnTracksLoaded(ArrayList<Track> tracks) {
-        this.tracks = tracks;
-        adapter = new TracksRecyclerViewAdapter(tracks, onTrackClickListener);
-        tracksRecyclerView.setAdapter(adapter);
+        tracksLiveData = dataViewModel.getTracks();
+        tracksLiveData.observe(getViewLifecycleOwner(), tracks -> {
+            if (tracks != null) {
+                adapter.setTracks(tracks);
+            }
+        });
     }
 }

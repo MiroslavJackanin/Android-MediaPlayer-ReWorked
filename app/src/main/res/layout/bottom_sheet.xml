@@ -99,15 +99,16 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
-        android:id="@+id/play_btn"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:background="@drawable/ic_play"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/seek_bar_layout" />
+        app:layout_constraintTop_toBottomOf="@+id/seek_bar_layout"
+        android:scaleX="2"
+        android:scaleY="2"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/volume_bar_layout"
