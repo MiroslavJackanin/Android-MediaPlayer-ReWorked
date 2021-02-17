@@ -18,7 +18,7 @@
         app:srcCompat="@drawable/ic_album_blank" />
 
     <TextView
-        android:id="@+id/textViewTitle"
+        android:id="@+id/textViewTitleSheet"
         android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -33,7 +33,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textViewArtist"
+        android:id="@+id/textViewArtistSheet"
         android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -42,7 +42,7 @@
         android:textAlignment="center"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/textViewTitle" />
+        app:layout_constraintStart_toStartOf="@+id/textViewTitleSheet" />
 
     <ImageView
         android:id="@+id/imageView2"
