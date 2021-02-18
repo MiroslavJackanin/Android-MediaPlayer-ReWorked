@@ -55,8 +55,11 @@ public class MediaPlayerService extends Service {
     private void actionPlay(Intent intent) {
         if (track != null) {
             Track newTrack = intent.getParcelableExtra("track");
-            if (track.getId() == newTrack.getId())
-                return;
+            if (track.getId() == newTrack.getId()) {
+                if (isPlaying()) {
+                    return;
+                }
+            }
         }
         if (mediaPlayer != null && mediaPlayer.isPlaying()){
             mediaPlayer.pause();
@@ -76,6 +79,9 @@ public class MediaPlayerService extends Service {
     private void actionSeekTimeTo(Intent intent) {
         int progress = intent.getIntExtra("progress", 0);
         mediaPlayer.seekTo(progress);
+        if (!isPlaying()) {
+            mediaPlayer.pause();
+        }
     }
 
     public boolean isPlaying() {
@@ -89,8 +95,5 @@ public class MediaPlayerService extends Service {
     }
     public String getCurrentPositionReadable() {
         return track.convertToReadable(String.valueOf(getCurrentPosition()));
-    }
-    public Track getTrack() {
-        return track;
     }
 }

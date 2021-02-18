@@ -9,7 +9,7 @@
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
     <ImageView
-        android:id="@+id/title_img"
+        android:id="@+id/s_album_cover"
         android:layout_width="360dp"
         android:layout_height="353dp"
         android:layout_marginTop="24dp"
@@ -20,14 +20,14 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <include
-        android:id="@+id/track_layout_sheet"
+        android:id="@+id/s_layout"
         layout="@layout/track_layout_sheet"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/s_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -35,54 +35,57 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:singleLine="true"
         android:text="Title"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_img" />
+        app:layout_constraintTop_toBottomOf="@+id/s_album_cover" />
 
     <TextView
-        android:id="@+id/album"
+        android:id="@+id/s_album"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-thin"
         android:text="Album"
-        android:textSize="18sp"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
+        app:layout_constraintTop_toBottomOf="@+id/s_title" />
 
     <TextView
-        android:id="@+id/artist"
+        android:id="@+id/s_artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-thin"
         android:text="Artist"
-        android:textSize="18sp"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/album" />
+        app:layout_constraintTop_toBottomOf="@+id/s_album" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/seek_bar_layout"
+        android:id="@+id/time_seekBar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/artist">
+        app:layout_constraintTop_toBottomOf="@+id/s_artist">
 
         <TextView
-            android:id="@+id/elapsedTimeLabel"
+            android:id="@+id/elapsed_time_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
             android:text="0:11"
-            app:layout_constraintEnd_toStartOf="@+id/seek_bar"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/time_seekBar"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <SeekBar
-            android:id="@+id/seek_bar"
-            android:layout_width="300dp"
+            android:id="@+id/time_seekBar"
+            android:layout_width="330dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -90,50 +93,68 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/remainingTimeLabel"
+            android:id="@+id/remaining_time_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
             android:text="-2:58"
+            android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/seek_bar"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/time_seekBar"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/play_btn"
+        android:id="@+id/s_play_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:background="@drawable/ic_play"
         android:onClick="playBtnClick"
-        android:scaleX="2"
-        android:scaleY="2"
+        android:scaleX="1.2"
+        android:scaleY="1.2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/seek_bar_layout" />
+        app:layout_constraintTop_toBottomOf="@+id/time_seekBar_layout" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/s_play_btn_bcg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/ic_play_bcg"
+        android:onClick="playBtnClick"
+        android:scaleX="2.5"
+        android:scaleY="2.5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time_seekBar_layout" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/volume_bar_layout"
+        android:id="@+id/volume_seekBar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:id="@+id/volume_low_img"
-            android:layout_width="18dp"
-            android:layout_height="20dp"
+            android:id="@+id/decrease_vol_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:background="@drawable/ic_volume_down"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/volume_seek_bar"
+            app:layout_constraintEnd_toStartOf="@+id/volume_seekBar"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <SeekBar
-            android:id="@+id/volume_seek_bar"
-            android:layout_width="300dp"
+            android:id="@+id/volume_seekBar"
+            style="@style/Widget.AppCompat.SeekBar"
+            android:layout_width="330dp"
             android:layout_height="wrap_content"
             android:progress="50"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -142,12 +163,14 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/volume_high_img"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:id="@+id/increase_vol_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:background="@drawable/ic_volume_up"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/volume_seek_bar"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/volume_seekBar"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

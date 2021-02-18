@@ -4,10 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="58dp"
     android:layout_marginBottom="2dp"
-    android:background="#171717">
+    android:background="#171717"
+    android:onClick="expandSheet">
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/s_tl_album_cover"
         android:layout_width="58dp"
         android:layout_height="58dp"
         android:scaleType="centerInside"
@@ -18,7 +19,7 @@
         app:srcCompat="@drawable/ic_album_blank" />
 
     <TextView
-        android:id="@+id/textViewTitleSheet"
+        android:id="@+id/s_tl_title"
         android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -29,11 +30,11 @@
         android:text="@string/title"
         android:textAlignment="center"
         android:textSize="14sp"
-        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toEndOf="@+id/s_tl_album_cover"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textViewArtistSheet"
+        android:id="@+id/s_tl_artist"
         android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -42,18 +43,19 @@
         android:textAlignment="center"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/textViewTitleSheet" />
+        app:layout_constraintStart_toStartOf="@+id/s_tl_title" />
 
-    <ImageView
-        android:id="@+id/imageView2"
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/s_tl_play_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
+        android:onClick="playBtnClick"
         android:scaleX="1.5"
         android:scaleY="1.5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_play" />
+        android:background="@drawable/ic_play" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

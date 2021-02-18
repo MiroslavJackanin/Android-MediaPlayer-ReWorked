@@ -9,11 +9,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -42,32 +42,30 @@ import sk.it.android.mp.util.Track;
 
 public class MainActivity extends AppCompatActivity implements OnTrackClickListener {
 
-    ViewPager2 viewPager2;
-    TabLayout tabLayout;
     View bottomSheet;
     View trackLayoutSheet;
 
-    AppCompatImageView playBtn;
+    AppCompatImageView sPlayBtn;
     SeekBar timeSeekBar;
     SeekBar volumeSeekBar;
-
-    TextView titleTextView;
-    TextView albumTextView;
-    TextView artistTextView;
-
+    TextView sTitle;
+    TextView sAlbum;
+    TextView sArtist;
     TextView elapsedTimeLabel;
     TextView remainingTimeLabel;
 
-    ViewPagerFragmentAdapter adapter;
+    TextView stlTitle;
+    TextView stlArtist;
+    ImageView stlPlayBtn;
+
     MediaPlayerService mediaPlayerService;
     BottomSheetBehavior<View> bottomSheetBehavior;
-    AudioManager audioManager;
     Handler handler;
     Intent intent;
+    Thread scoutProgressThread;
 
     ArrayList<Track> tracks = new ArrayList<>();
     Track track;
-    boolean isMediaPlayerServiceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +74,74 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
 
         Intent intent = new Intent(this, MediaPlayerService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
-        initToolbar();
-        initViewPagerAndTabLayout();
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MediaPlayerService.LocalBinder localBinder = (MediaPlayerService.LocalBinder) service;
+            mediaPlayerService = localBinder.getService();
 
-        trackLayoutSheet = findViewById(R.id.track_layout_sheet);
+            initActivity();
+            initLiveData();
+            initViews();
+
+            scoutProgressThread = new Thread(() -> {
+                while (true) {
+                    handler.post(() -> elapsedTimeLabel.setText(mediaPlayerService.getCurrentPositionReadable()));
+                    SystemClock.sleep(1000);
+                    if (mediaPlayerService.getCurrentPositionReadable().equals(track.getDurationReadable())) {
+                        resetPlayThrough();
+                        scoutProgressThread.interrupt();
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {}
+    };
+
+    public void initActivity() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        Objects.requireNonNull(getSupportActionBar()).setTitle("Library");
+
+        ViewPager2 viewPager2 = findViewById(R.id.view_pager);
+        ViewPagerFragmentAdapter viewPagerFragmentAdapter = new ViewPagerFragmentAdapter(
+                getSupportFragmentManager(),
+                getLifecycle(),
+                this);
+        viewPager2.setAdapter(viewPagerFragmentAdapter);
+
+        TabLayout tabLayout = findViewById(R.id.tab_layout);
+        new TabLayoutMediator(tabLayout, viewPager2, (tab, position) -> {
+            switch (position) {
+                case 0:
+                    tab.setText("TRACKS");
+                    break;
+                case 1:
+                    tab.setText("ALBUMS");
+                    break;
+            }
+        }).attach();
+
+        handler = new Handler();
+    }
+
+    public void initLiveData() {
+        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
+        DataViewModel dataViewModel = viewModelProvider.get(DataViewModel.class);
+        LiveData<ArrayList<Track>> tracksLiveData = dataViewModel.getTracks();
+        tracksLiveData.observe(this, tracks -> {
+            if (tracks != null) { this.tracks = tracks; }
+        });
+    }
+
+    public void initViews() {
+        trackLayoutSheet = findViewById(R.id.s_layout);
         bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheet.setOnTouchListener((v, event) -> true);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -94,66 +154,43 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
             }
         });
 
-        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
-        DataViewModel dataViewModel = viewModelProvider.get(DataViewModel.class);
+        stlPlayBtn = findViewById(R.id.s_tl_play_btn);
+        stlTitle = findViewById(R.id.s_tl_title);
+        stlArtist = findViewById(R.id.s_tl_artist);
+        stlTitle.setSelected(true);
 
-        LiveData<ArrayList<Track>> tracksLiveData = dataViewModel.getTracks();
-        tracksLiveData.observe(this, tracks -> {
-            if (tracks != null) {
-                this.tracks = tracks;
+        sPlayBtn = findViewById(R.id.s_play_btn);
+        if (mediaPlayerService.isPlaying()) {
+            sPlayBtn.setBackgroundResource(R.drawable.ic_pause);
+        } else {
+            sPlayBtn.setBackgroundResource(R.drawable.ic_play);
+        }
+        sTitle = findViewById(R.id.s_title);
+        sAlbum = findViewById(R.id.s_album);
+        sArtist = findViewById(R.id.s_artist);
+        sTitle.setSelected(true);
+
+        elapsedTimeLabel = findViewById(R.id.elapsed_time_label);
+        remainingTimeLabel = findViewById(R.id.remaining_time_label);
+
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        final int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        final int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        volumeSeekBar = findViewById(R.id.volume_seekBar);
+        volumeSeekBar.setMax(maxVolume);
+        volumeSeekBar.setProgress(currentVolume);
+        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
             }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-    }
-
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MediaPlayerService.LocalBinder localBinder = (MediaPlayerService.LocalBinder) service;
-            mediaPlayerService = localBinder.getService();
-            isMediaPlayerServiceBound = true;
-
-            handler = new Handler();
-
-            playBtnInit();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            isMediaPlayerServiceBound = false;
-        }
-    };
-
-    Thread scoutProgress = new Thread(new Runnable() {
-        public void run() {
-            while (true) {
-                handler.post(() -> elapsedTimeLabel.setText(mediaPlayerService.getCurrentPositionReadable()));
-                SystemClock.sleep(1000);
-            }
-        }
-    });
-
-    private void initViewPagerAndTabLayout() {
-        viewPager2 = findViewById(R.id.view_pager);
-        adapter = new ViewPagerFragmentAdapter(getSupportFragmentManager(), getLifecycle(), this);
-        viewPager2.setAdapter(adapter);
-
-        tabLayout = findViewById(R.id.tab_layout);
-        new TabLayoutMediator(tabLayout, viewPager2, (tab, position) -> {
-            switch (position) {
-                case 0:
-                    tab.setText("TRACKS");
-                    break;
-                case 1:
-                    tab.setText("ALBUMS");
-                    break;
-            }
-        }).attach();
-    }
-
-    private void initToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setTitle("Library");
     }
 
     @Override
@@ -161,15 +198,6 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        } else {
-            finish();
-        }
     }
 
     @Override
@@ -181,12 +209,60 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
         intent.putExtra("track", track);
         startService(intent);
 
-        playBtn.setBackgroundResource(R.drawable.ic_pause);
-        initBottomSheetTrackLayout();
-        initBottomSheet();
-
         timeSeekBarInit();
-        volumeSeekBarInit();
+
+        sPlayBtn.setBackgroundResource(R.drawable.ic_pause);
+        stlPlayBtn.setBackgroundResource(R.drawable.ic_pause);
+
+        sTitle.setText(track.getTitle());
+        sAlbum.setText(track.getAlbum());
+        sArtist.setText(track.getArtist());
+        remainingTimeLabel.setText(track.getDurationReadable());
+
+        stlTitle.setText(track.getTitle());
+        stlArtist.setText(track.getArtist());
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    public void playBtnClick(View view) {
+        if (mediaPlayerService.isPlaying()) {
+            actionPause();
+        } else {
+            actionResume();
+        }
+    }
+    @Override
+    public void onBackPressed() {
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        } else {
+            this.moveTaskToBack(true);
+        }
+    }
+    public void expandSheet(View view) {
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
+    }
+
+    private void timeSeekBarInit() {
+        timeSeekBar = findViewById(R.id.time_seekBar);
+        timeSeekBar.setMax(Integer.parseInt(track.getDuration()));
+        timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) actionSeekTimeTo(progress);
+                timeSeekBar.setProgress(progress);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                actionPause();
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                actionResume();
+            }
+        });
 
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -195,116 +271,30 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
             }
         }, 0, 100);
 
-        if (!scoutProgress.isAlive()) {
-            scoutProgress.start();
-        }
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-    }
-
-    private void initBottomSheetTrackLayout() {
-        TextView bottomSheetTrackLayoutTitle = findViewById(R.id.textViewTitleSheet);
-        TextView bottomSheetTrackLayoutArtist = findViewById(R.id.textViewArtistSheet);
-        bottomSheetTrackLayoutTitle.setSelected(true);
-
-        bottomSheetTrackLayoutTitle.setText(track.getTitle());
-        bottomSheetTrackLayoutArtist.setText(track.getArtist());
-    }
-
-    private void initBottomSheet() {
-        titleTextView = findViewById(R.id.title);
-        albumTextView = findViewById(R.id.album);
-        artistTextView = findViewById(R.id.artist);
-
-        titleTextView.setSelected(true);
-
-        titleTextView.setText(track.getTitle());
-        albumTextView.setText(track.getAlbum());
-        artistTextView.setText(track.getArtist());
-
-        elapsedTimeLabel = findViewById(R.id.elapsedTimeLabel);
-        remainingTimeLabel = findViewById(R.id.remainingTimeLabel);
-        remainingTimeLabel.setText(track.getDurationReadable());
-    }
-
-    private void playBtnInit() {
-        playBtn = findViewById(R.id.play_btn);
-        if (mediaPlayerService.isPlaying()) {
-            playBtn.setBackgroundResource(R.drawable.ic_pause);
-        } else {
-            playBtn.setBackgroundResource(R.drawable.ic_play);
-        }
-    }
-    public void playBtnClick(View view) {
-        if (mediaPlayerService.isPlaying()) {
-            playBtn.setBackgroundResource(R.drawable.ic_play);
-            actionPause();
-        } else {
-            playBtn.setBackgroundResource(R.drawable.ic_pause);
-            actionResume();
+        if (!scoutProgressThread.isAlive() || scoutProgressThread.isInterrupted()) {
+            scoutProgressThread.start();
         }
     }
 
-    private void timeSeekBarInit() {
-        timeSeekBar = findViewById(R.id.seek_bar);
-        timeSeekBar.setMax(Integer.parseInt(track.getDuration()));
-        timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) actionSeekTimeTo(progress);
-                timeSeekBar.setProgress(progress);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                actionPause();
-                playBtn.setBackgroundResource(R.drawable.ic_play);
-            }
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                actionResume();
-                playBtn.setBackgroundResource(R.drawable.ic_pause);
-            }
-        });
-    }
-
-    private void volumeSeekBarInit() {
-        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        final int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        final int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-        volumeSeekBar = findViewById(R.id.volume_seek_bar);
-        volumeSeekBar.setMax(maxVolume);
-        volumeSeekBar.setProgress(currentVolume);
-        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
+    private void resetPlayThrough() {
+        actionSeekTimeTo(0);
+        sPlayBtn.setBackgroundResource(R.drawable.ic_play);
+        stlPlayBtn.setBackgroundResource(R.drawable.ic_play);
     }
 
     private void actionPause() {
         intent = new Intent(this, MediaPlayerService.class);
         intent.setAction("PAUSE");
         startService(intent);
-
-        playBtn.setBackgroundResource(R.drawable.ic_play);
+        sPlayBtn.setBackgroundResource(R.drawable.ic_play);
+        stlPlayBtn.setBackgroundResource(R.drawable.ic_play);
     }
     private void actionResume() {
         intent = new Intent(this, MediaPlayerService.class);
         intent.setAction("RESUME");
         startService(intent);
-
-        playBtn.setBackgroundResource(R.drawable.ic_pause);
+        sPlayBtn.setBackgroundResource(R.drawable.ic_pause);
+        stlPlayBtn.setBackgroundResource(R.drawable.ic_pause);
     }
     private void actionSeekTimeTo(int progress) {
         intent = new Intent(this, MediaPlayerService.class);
