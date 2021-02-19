@@ -79,7 +79,7 @@ public class MediaPlayerService extends Service {
     private void actionSeekTimeTo(Intent intent) {
         int progress = intent.getIntExtra("progress", 0);
         mediaPlayer.seekTo(progress);
-        if (!isPlaying()) {
+        if (intent.hasExtra("resetPlayThrough")) {
             mediaPlayer.pause();
         }
     }

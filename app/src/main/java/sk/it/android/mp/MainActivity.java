@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -251,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
         timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) actionSeekTimeTo(progress);
+                if (fromUser) actionSeekTimeTo(progress, false);
                 timeSeekBar.setProgress(progress);
             }
             @Override
@@ -277,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
     }
 
     private void resetPlayThrough() {
-        actionSeekTimeTo(0);
+        actionSeekTimeTo(0, true);
         sPlayBtn.setBackgroundResource(R.drawable.ic_play);
         stlPlayBtn.setBackgroundResource(R.drawable.ic_play);
     }
@@ -296,9 +295,10 @@ public class MainActivity extends AppCompatActivity implements OnTrackClickListe
         sPlayBtn.setBackgroundResource(R.drawable.ic_pause);
         stlPlayBtn.setBackgroundResource(R.drawable.ic_pause);
     }
-    private void actionSeekTimeTo(int progress) {
+    private void actionSeekTimeTo(int progress, boolean resetPlayThrough) {
         intent = new Intent(this, MediaPlayerService.class);
         intent.setAction("SEEK_TIME_TO");
+        intent.putExtra("resetPlayThrough", resetPlayThrough);
         intent.putExtra("progress", progress);
         startService(intent);
     }
